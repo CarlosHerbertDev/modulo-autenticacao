@@ -1,0 +1,37 @@
+services:
+
+  php:
+    build: .
+    container_name: modulo_autenticacao_backend
+    volumes:
+      - ./src:/var/www/html
+      - ./000-default.conf:/etc/apache2/sites-available/000-default.conf
+      - ./apache2.conf:/etc/apache2/apache2.conf
+    ports:
+      - "8086:80"
+    depends_on:
+      - db
+    entrypoint: ["/entrypoint.sh"]
+
+  db:
+    image: mysql:8.0
+    container_name: mysql_autenticacao
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: modulo_autenticacao
+      MYSQL_USER: modulo_autenticacao
+      MYSQL_PASSWORD: 123
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./mysql-init:/docker-entrypoint-initdb.d
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: phpmyadmin_autenticacao
+    environment:
+      PMA_HOST: db
+    ports:
+      - "8082:80"
+    depends_on:
+      - db
