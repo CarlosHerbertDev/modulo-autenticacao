@@ -4,7 +4,7 @@ inicar container com um composer up, botão direito no arquivo docker-compose.ym
 
 Rodas os proximos comandos dentro do container 
 
-1. entar no container docker exec -it modulos_autentication bash
+1. entar no container docker exec -it modulo_autenticacao bash
 
 2 entrar no container depois de montado e dar um composer install
 

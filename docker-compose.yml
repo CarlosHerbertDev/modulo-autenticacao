@@ -22,7 +22,7 @@ services:
       MYSQL_USER: modulo_autenticacao
       MYSQL_PASSWORD: 123
     ports:
-      - "3306:3306"
+      - "3310:3306"
     volumes:
       - ./mysql-init:/docker-entrypoint-initdb.d
 
