@@ -1,17 +1,17 @@
 services:
 
   php:
-    build: .
+    build:
+      context: .
+      target: dev
     container_name: autenticacao_backend
     volumes:
       - ./src:/var/www/html
-      - ./000-default.conf:/etc/apache2/sites-available/000-default.conf
-      - ./apache2.conf:/etc/apache2/apache2.conf
     ports:
       - "8099:80"
     depends_on:
-      - db
-    entrypoint: ["/entrypoint.sh"]
+      db:
+        condition: service_healthy
 
   db:
     image: mysql:8.0
@@ -24,7 +24,13 @@ services:
     ports:
       - "3310:3306"
     volumes:
+      - mysql_data:/var/lib/mysql
       - ./mysql-init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
 
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
@@ -34,4 +40,8 @@ services:
     ports:
       - "8098:80"
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+
+volumes:
+  mysql_data:
