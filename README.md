@@ -1,23 +1,64 @@
 # modulo-autenticacao
 
-inicar container com um composer up, botão direito no arquivo docker-compose.yml
+API de autenticação em Laravel 12 / PHP 8.2, empacotada em Docker.
 
-Rodas os proximos comandos dentro do container 
+> Explicação detalhada de cada arquivo da infraestrutura, linha a linha, em [DOCKER.md](DOCKER.md).
 
-1. entar no container docker exec -it modulo_autenticacao bash
+## Ambiente local
 
-2 entrar no container depois de montado e dar um composer install
+```bash
+docker compose up -d --build
+docker compose exec php php artisan migrate
+docker compose exec php php artisan storage:link
+```
 
-3 liberar permissões com chmod -R 777 ./
+O entrypoint de desenvolvimento cuida sozinho do `composer install`, do `.env`
+(copiado do `.env.example`) e do `php artisan key:generate` na primeira subida.
 
-4 gerar env através do env example com o comando cp .env.example .env
+| Serviço      | URL                     |
+| ------------ | ----------------------- |
+| Aplicação    | http://localhost:8099   |
+| phpMyAdmin   | http://localhost:8098   |
+| MySQL (host) | `127.0.0.1:3310`        |
 
-5 gerar chave com php artisan key:generate
+Container da aplicação: `autenticacao_backend`.
 
-6 gerar migrations para banco com php artisan migrate 
+```bash
+docker compose exec php bash
+```
 
-7 gerar link simbolico para acessar imagens php artisan storage:link
+## Imagens Docker
 
-agora basta acessar o local host em localhost:8070
+O `Dockerfile` é multi-stage:
 
-e acessar a doc das apis em localhost:8070/api/documentation
+| Stage  | Uso                     | Porta | Código             |
+| ------ | ----------------------- | ----- | ------------------ |
+| `dev`  | `docker-compose.yml`    | 80    | bind mount `./src` |
+| `prod` | Render / VPS            | `$PORT` (padrão 10000) | copiado na imagem |
+
+`prod` é o último stage, então um `docker build .` sem `--target` gera a imagem
+de produção — é disso que o Render depende, pois o `render.yaml` não tem campo
+de build target.
+
+## Deploy no Render
+
+1. `New → Blueprint` apontando para este repositório (usa o `render.yaml`).
+2. Preencher as variáveis marcadas como `sync: false` no painel:
+   - `APP_KEY` — gerar com `php artisan key:generate --show` e colar com o prefixo `base64:`
+   - `APP_URL` — a URL `.onrender.com` do serviço, após o primeiro deploy
+   - `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD` — MySQL externo
+   - `MYSQL_ATTR_SSL_CA` — `/etc/ssl/certs/ca-certificates.crt` se o provedor exigir TLS
+3. O entrypoint de produção roda `migrate --force` e os caches de config/rotas/views a cada boot.
+
+O Render não oferece MySQL gerenciado (só Postgres e Key Value), então o banco
+precisa vir de um provedor externo.
+
+## Deploy em VPS
+
+```bash
+cp .env.deploy.example .env
+docker compose -f docker-compose.prod.yml up -d --build
+```
+
+A aplicação sobe em `127.0.0.1:8099`, sem TLS — coloque um proxy reverso
+(nginx, Caddy ou Traefik) na frente para terminar HTTPS.
