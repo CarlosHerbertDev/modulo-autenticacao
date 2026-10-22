@@ -27,6 +27,70 @@ Container da aplicação: `autenticacao_backend`.
 docker compose exec php bash
 ```
 
+## Documentação da API (Swagger)
+
+| Recurso         | URL                                          |
+| --------------- | -------------------------------------------- |
+| Swagger UI      | http://localhost:8099/api/documentation      |
+| Spec OpenAPI    | http://localhost:8099/docs?api-docs.json     |
+
+O pacote é o [darkaonline/l5-swagger](https://github.com/DarkaOnLine/L5-Swagger)
+(swagger-php + Swagger UI). Em desenvolvimento o `.env` traz
+`L5_SWAGGER_GENERATE_ALWAYS=true`, então a spec é regerada a cada acesso ao
+`/docs`. Para gerar manualmente:
+
+```bash
+docker compose exec php php artisan l5-swagger:generate
+```
+
+A spec fica em `src/storage/api-docs/api-docs.json` (não versionada). Em
+produção o `docker/entrypoint.prod.sh` roda o `l5-swagger:generate` no boot,
+antes dos caches.
+
+As anotações são **PHP 8 attributes** (`OpenApi\Attributes`); docblocks estão
+depreciados no swagger-php 6. Os metadados globais (info, server, esquema de
+segurança `bearerAuth`) ficam em `src/app/OpenApi/OpenApiSpec.php`, que também
+documenta o health check `/up`. Endpoints novos se documentam no próprio
+controller:
+
+```php
+use OpenApi\Attributes as OA;
+
+#[OA\Post(
+    path: '/api/login',
+    summary: 'Autentica o usuário',
+    tags: ['Autenticação'],
+    security: [],
+    requestBody: new OA\RequestBody(
+        required: true,
+        content: new OA\JsonContent(
+            required: ['email', 'password'],
+            properties: [
+                new OA\Property(property: 'email', type: 'string', format: 'email'),
+                new OA\Property(property: 'password', type: 'string', format: 'password'),
+            ],
+        ),
+    ),
+    responses: [
+        new OA\Response(response: 200, description: 'Token emitido'),
+        new OA\Response(response: 422, description: 'Credenciais inválidas'),
+    ],
+)]
+public function login(LoginRequest $request) { /* ... */ }
+```
+
+O `security: []` libera o endpoint; omitindo-o, o endpoint herda o
+`bearerAuth` quando a `security` global estiver configurada em
+`config/l5-swagger.php`.
+
+Variáveis relevantes no `.env`:
+
+| Variável                              | Função                                                        |
+| ------------------------------------- | ------------------------------------------------------------- |
+| `L5_SWAGGER_CONST_HOST`               | URL do `server` na spec (padrão: `APP_URL`)                   |
+| `L5_SWAGGER_GENERATE_ALWAYS`          | regera a spec a cada request — `true` só em dev               |
+| `L5_SWAGGER_UI_PERSIST_AUTHORIZATION` | mantém o token digitado no "Authorize" entre recarregamentos  |
+
 ## Imagens Docker
 
 O `Dockerfile` é multi-stage:

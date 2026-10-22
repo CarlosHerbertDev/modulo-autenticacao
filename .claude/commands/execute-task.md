@@ -1,0 +1,4 @@
+- Ao iniciar uma tarefe **SEMPRE** chame o agent @agent-laravel-execute
+- Após a tarefa ser realizada **SEMPRE** chame o agent @laravel-reviewer para revisar o código
+- Após a revisão **SEMPRE** passe para o agent @agent-laravel-execute **APENAS** para que ele faça as correções, e **SEMPRE** chame o agent @laravel-change-documenter para documentar toda a revisao feita
+- Após a criação da documentação e correções **SEMPRE** chane o agent @agent-laravel-phpunit para criar testes para nova função implementada

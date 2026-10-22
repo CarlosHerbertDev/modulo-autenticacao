@@ -14,6 +14,8 @@ done
 
 php artisan migrate --force --no-interaction
 
+php artisan l5-swagger:generate
+
 php artisan config:cache
 php artisan route:cache
 php artisan view:cache
