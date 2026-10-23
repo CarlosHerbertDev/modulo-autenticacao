@@ -4,7 +4,7 @@ services:
     build:
       context: .
       target: dev
-    container_name: autenticacao_backend
+    container_name: pague-ai-backend
     volumes:
       - ./src:/var/www/html
     ports:
@@ -15,11 +15,11 @@ services:
 
   db:
     image: mysql:8.0
-    container_name: mysql_autenticacao_backend
+    container_name: mysql_pague-ai_backend
     environment:
       MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: modulo_autenticacao
-      MYSQL_USER: modulo_autenticacao
+      MYSQL_DATABASE: pague-ai
+      MYSQL_USER: pague-ai
       MYSQL_PASSWORD: 123
     ports:
       - "3310:3306"
@@ -34,7 +34,7 @@ services:
 
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
-    container_name: phpmyadmin_autenticacao_backend
+    container_name: phpmyadmin_pague-ai_backend
     environment:
       PMA_HOST: db
     ports:

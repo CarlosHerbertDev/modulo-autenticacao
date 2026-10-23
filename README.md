@@ -1,4 +1,4 @@
-# modulo-autenticacao
+# pague-ai-backend
 
 API de autenticação em Laravel 12 / PHP 8.2, empacotada em Docker.
 

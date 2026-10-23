@@ -4,11 +4,11 @@ services:
     build:
       context: .
       target: prod
-    image: modulo-autenticacao:prod
+    image: pague-ai:prod
     restart: unless-stopped
     environment:
       PORT: 80
-      APP_NAME: modulo-autenticacao
+      APP_NAME: pague-ai-backend
       APP_ENV: production
       APP_DEBUG: "false"
       APP_KEY: ${APP_KEY:?defina APP_KEY no .env ao lado deste arquivo}
